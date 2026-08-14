@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050505" />
+    <title>Gallery Lounge — электронное меню</title>
+    <link rel="preload" href="assets/gallery-logo.png" as="image" />
+    <link rel="preload" href="assets/sample-basil.png" as="image" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-pattern" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <a class="logo-link" href="#menu-content" aria-label="Gallery Lounge — к меню">
+        <img src="assets/gallery-logo.png" alt="Gallery Lounge" />
+      </a>
+
+      <nav class="primary-nav" aria-label="Основные разделы меню">
+        <button type="button" class="primary-tab is-active" data-section="drinks">Напитки</button>
+        <button type="button" class="primary-tab" data-section="food">Еда</button>
+        <button type="button" class="primary-tab" data-section="hookahs">Кальяны</button>
+      </nav>
+
+      <div class="category-rail-wrap">
+        <nav class="category-rail" aria-label="Категории раздела"></nav>
+      </div>
+    </header>
+
+    <main id="menu-content" class="menu-content">
+      <div class="section-heading">
+        <p class="section-kicker" id="section-kicker">Напитки</p>
+        <h1 id="category-title">Коктейли</h1>
+        <p id="category-status">Демонстрация общего каркаса · 3 реальные позиции</p>
+      </div>
+
+      <section class="product-feed" aria-live="polite"></section>
+    </main>
+
+    <aside class="selection-tray" aria-label="Выбранные позиции">
+      <div>
+        <span>Выбрано</span>
+        <strong id="selection-count">0</strong>
+      </div>
+      <button class="show-selection" type="button" disabled>
+        Показать официанту
+        <span id="selection-total">0 ₽</span>
+      </button>
+    </aside>
+
+    <div class="sheet-backdrop" hidden></div>
+    <section class="selection-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <p>Gallery Lounge</p>
+          <h2 id="sheet-title">Ваш выбор</h2>
+        </div>
+        <button class="sheet-close" type="button" aria-label="Закрыть список">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19" /></svg>
+        </button>
+      </header>
+      <div class="sheet-items"></div>
+      <div class="sheet-empty">
+        <strong>Список пока пуст</strong>
+        <p>Добавьте позиции из меню — список можно будет показать официанту.</p>
+      </div>
+      <footer class="sheet-footer">
+        <span>Итого</span>
+        <strong id="sheet-total">0 ₽</strong>
+        <p>Это список для показа официанту, а не онлайн-заказ.</p>
+      </footer>
+    </section>
+
+    <template id="product-card-template">
+      <article class="product-card">
+        <div class="product-media">
+          <img alt="" loading="lazy" />
+          <div class="media-shade" aria-hidden="true"></div>
+        </div>
+        <div class="product-info">
+          <h2></h2>
+          <p class="product-description"></p>
+          <div class="info-divider" aria-hidden="true"></div>
+          <div class="product-bottom">
+            <div class="product-meta">
+              <span class="product-volume"></span>
+              <strong class="product-price"></strong>
+            </div>
+            <button class="add-product" type="button">
+              <span class="add-icon" aria-hidden="true">+</span>
+              <span class="add-label">Добавить</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
