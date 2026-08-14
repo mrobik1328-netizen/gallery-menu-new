@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#050505" />
     <title>Gallery Lounge — электронное меню</title>
+    <link rel="icon" href="assets/gallery-logo.png" type="image/png" />
     <link rel="preload" href="assets/gallery-logo.png" as="image" />
-    <link rel="preload" href="assets/sample-basil.png" as="image" />
+    <link rel="preload" href="assets/food/meat-cut.webp" as="image" type="image/webp" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -18,8 +19,8 @@
       </a>
 
       <nav class="primary-nav" aria-label="Основные разделы меню">
-        <button type="button" class="primary-tab is-active" data-section="drinks">Напитки</button>
-        <button type="button" class="primary-tab" data-section="food">Еда</button>
+        <button type="button" class="primary-tab" data-section="drinks">Напитки</button>
+        <button type="button" class="primary-tab is-active" data-section="food">Еда</button>
         <button type="button" class="primary-tab" data-section="hookahs">Кальяны</button>
       </nav>
 
@@ -30,9 +31,9 @@
 
     <main id="menu-content" class="menu-content">
       <div class="section-heading">
-        <p class="section-kicker" id="section-kicker">Напитки</p>
-        <h1 id="category-title">Коктейли</h1>
-        <p id="category-status">Демонстрация общего каркаса · 3 реальные позиции</p>
+        <p class="section-kicker" id="section-kicker">Еда</p>
+        <h1 id="category-title">Нарезки</h1>
+        <p id="category-status">2 позиции</p>
       </div>
 
       <section class="product-feed" aria-live="polite"></section>
@@ -78,6 +79,7 @@
         <div class="product-media">
           <img alt="" loading="lazy" />
           <div class="media-shade" aria-hidden="true"></div>
+          <span class="product-badge" hidden></span>
         </div>
         <div class="product-info">
           <h2></h2>
