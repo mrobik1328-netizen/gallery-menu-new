@@ -2,7 +2,7 @@ const sections = {
   drinks: {
     label: 'Напитки',
     categories: [
-      'Лимонады', 'Коктейли', 'Шоты', 'Смузи', 'Кофе', 'Чай', 'Авторский', 'Напитки',
+      'Лимонады', 'Коктейли', 'Шоты', 'Смузи', 'Кофе', 'Чай', 'Авторский чай', 'Безалкогольные напитки',
       'Пиво', 'Джин', 'Текила', 'Водка', 'Шампанское', 'Вино', 'Коньяк', 'Виски',
     ],
   },
@@ -17,34 +17,7 @@ const sections = {
 };
 
 const productsBySection = {
-  drinks: {
-    Коктейли: [
-      {
-        id: 'basil-smash',
-        name: 'Бэйзил Смэш',
-        description: 'Состав будет добавлен на этапе наполнения категории',
-        measure: '400 мл',
-        price: 500,
-        image: 'assets/sample-basil.png',
-      },
-      {
-        id: 'pornstar-martini',
-        name: 'Порнстар Мартини',
-        description: 'Состав будет добавлен на этапе наполнения категории',
-        measure: '300 мл',
-        price: 650,
-        image: 'assets/sample-pornstar.png',
-      },
-      {
-        id: 'negroni',
-        name: 'Негрони',
-        description: 'Состав будет добавлен на этапе наполнения категории',
-        measure: '300 мл',
-        price: 700,
-        image: 'assets/sample-negroni.png',
-      },
-    ],
-  },
+  drinks: drinksCatalog,
   food: {
     Нарезки: [
       {
@@ -366,6 +339,26 @@ function getCurrentProducts() {
   return productsBySection[state.section]?.[state.category] || [];
 }
 
+function getProductVariants(product) {
+  if (Array.isArray(product.variants) && product.variants.length) return product.variants;
+  return [{ measure: product.measure || null, price: product.price }];
+}
+
+function getProductDisplayName(product) {
+  if (!product) return '';
+  return product.stars ? `${product.name} ${'★'.repeat(product.stars)}` : product.name;
+}
+
+function getStarsAriaLabel(count) {
+  if (count === 1) return '1 звезда';
+  if (count >= 2 && count <= 4) return `${count} звезды`;
+  return `${count} звёзд`;
+}
+
+function getSelectionKey(productId, variantIndex) {
+  return `${productId}::${variantIndex}`;
+}
+
 function renderCategories() {
   const section = sections[state.section];
   categoryRail.replaceChildren();
@@ -439,50 +432,100 @@ function renderContent() {
       badge.hidden = false;
     }
 
-    card.querySelector('h2').textContent = product.name;
+    const productTitle = card.querySelector('h2');
+    if (product.brandLine && product.typeLine) {
+      const brandLine = document.createElement('span');
+      brandLine.className = 'product-title-brand';
+      brandLine.textContent = product.brandLine;
+      const typeLine = document.createElement('span');
+      typeLine.className = 'product-title-type';
+      typeLine.textContent = product.typeLine;
+      productTitle.replaceChildren(brandLine, typeLine);
+    } else {
+      productTitle.textContent = product.name;
+    }
+
+    if (product.stars) {
+      const stars = document.createElement('div');
+      stars.className = 'product-stars';
+      stars.setAttribute('role', 'img');
+      stars.setAttribute('aria-label', getStarsAriaLabel(product.stars));
+      stars.textContent = '★'.repeat(product.stars);
+      productTitle.after(stars);
+    }
     const description = card.querySelector('.product-description');
     description.textContent = product.description || '';
     description.hidden = !product.description;
 
-    const measure = card.querySelector('.product-volume');
-    measure.textContent = product.measure || '';
-    measure.hidden = !product.measure;
+    const options = card.querySelector('.product-options');
+    getProductVariants(product).forEach((variant, variantIndex) => {
+      const option = document.createElement('div');
+      option.className = 'product-bottom';
+      option.dataset.variantIndex = String(variantIndex);
 
-    card.querySelector('.product-price').textContent = formatPrice(product.price);
-    const addButton = card.querySelector('.add-product');
-    addButton.setAttribute('aria-label', `Добавить ${product.name} в список`);
-    addButton.addEventListener('click', () => toggleProduct(product.id));
+      const meta = document.createElement('div');
+      meta.className = 'product-meta';
+      const measure = document.createElement('span');
+      measure.className = 'product-volume';
+      measure.textContent = variant.measure || '';
+      measure.hidden = !variant.measure;
+      const price = document.createElement('strong');
+      price.className = 'product-price';
+      price.textContent = formatPrice(variant.price);
+      meta.append(measure, price);
+
+      const addButton = document.createElement('button');
+      addButton.className = 'add-product';
+      addButton.type = 'button';
+      addButton.innerHTML = '<span class="add-icon" aria-hidden="true">+</span><span class="add-label">Добавить</span>';
+      const productDisplayName = getProductDisplayName(product);
+      const variantName = variant.measure ? `${productDisplayName}, ${variant.measure}` : productDisplayName;
+      addButton.setAttribute('aria-label', `Добавить ${variantName} в список`);
+      addButton.addEventListener('click', () => toggleProduct(product.id, variantIndex));
+
+      option.append(meta, addButton);
+      options.append(option);
+    });
+
     productFeed.append(card);
-    updateCardButton(product.id);
+    getProductVariants(product).forEach((_, variantIndex) => updateCardButton(product.id, variantIndex));
   });
 }
 
-function toggleProduct(productId) {
-  const current = state.selection.get(productId) || 0;
-  if (current > 0) state.selection.delete(productId);
-  else state.selection.set(productId, 1);
+function toggleProduct(productId, variantIndex = 0) {
+  const selectionKey = getSelectionKey(productId, variantIndex);
+  if (state.selection.has(selectionKey)) state.selection.delete(selectionKey);
+  else state.selection.set(selectionKey, { productId, variantIndex, quantity: 1 });
   updateSelectionUi();
-  updateCardButton(productId);
+  updateCardButton(productId, variantIndex);
 }
 
-function updateCardButton(productId) {
+function updateCardButton(productId, variantIndex = 0) {
   const card = productFeed.querySelector(`[data-product-id="${productId}"]`);
   if (!card) return;
-  const button = card.querySelector('.add-product');
+  const option = card.querySelector(`[data-variant-index="${variantIndex}"]`);
+  const button = option?.querySelector('.add-product');
+  if (!button) return;
   const product = productById.get(productId);
-  const added = (state.selection.get(productId) || 0) > 0;
+  const variant = getProductVariants(product)[variantIndex];
+  const added = state.selection.has(getSelectionKey(productId, variantIndex));
+  const productDisplayName = getProductDisplayName(product);
+  const variantName = variant?.measure ? `${productDisplayName}, ${variant.measure}` : productDisplayName;
   button.classList.toggle('is-added', added);
   button.querySelector('.add-icon').textContent = added ? '✓' : '+';
   button.querySelector('.add-label').textContent = added ? 'Добавлено' : 'Добавить';
   button.setAttribute('aria-pressed', String(added));
-  button.setAttribute('aria-label', `${added ? 'Убрать' : 'Добавить'} ${product?.name || 'позицию'} ${added ? 'из' : 'в'} списка`);
+  const actionLabel = added ? 'Убрать' : 'Добавить';
+  const destinationLabel = added ? 'из списка' : 'в список';
+  button.setAttribute('aria-label', `${actionLabel} ${variantName || 'позицию'} ${destinationLabel}`);
 }
 
 function updateSelectionUi() {
-  const count = [...state.selection.values()].reduce((sum, quantity) => sum + quantity, 0);
-  const total = [...state.selection.entries()].reduce((sum, [productId, quantity]) => {
-    const product = productById.get(productId);
-    return sum + (product?.price || 0) * quantity;
+  const count = [...state.selection.values()].reduce((sum, entry) => sum + entry.quantity, 0);
+  const total = [...state.selection.values()].reduce((sum, entry) => {
+    const product = productById.get(entry.productId);
+    const variant = product ? getProductVariants(product)[entry.variantIndex] : null;
+    return sum + (variant?.price || 0) * entry.quantity;
   }, 0);
 
   selectionCount.textContent = count;
@@ -496,34 +539,40 @@ function renderSheetItems() {
   sheetItems.replaceChildren();
   sheetEmpty.hidden = state.selection.size > 0;
 
-  state.selection.forEach((quantity, productId) => {
-    const product = productById.get(productId);
-    if (!product) return;
+  state.selection.forEach((entry, selectionKey) => {
+    const product = productById.get(entry.productId);
+    const variant = product ? getProductVariants(product)[entry.variantIndex] : null;
+    if (!product || !variant) return;
 
     const item = document.createElement('article');
     item.className = 'sheet-item';
+    const productDisplayName = getProductDisplayName(product);
     item.innerHTML = `
-      <div><h3></h3><p>${formatPrice(product.price * quantity)}</p></div>
+      <div><h3></h3><p></p></div>
       <div class="quantity-control">
-        <button class="quantity-button" type="button" data-delta="-1" aria-label="Уменьшить количество ${product.name}">−</button>
-        <strong>${quantity}</strong>
-        <button class="quantity-button" type="button" data-delta="1" aria-label="Увеличить количество ${product.name}">+</button>
+        <button class="quantity-button" type="button" data-delta="-1" aria-label="Уменьшить количество ${productDisplayName}">−</button>
+        <strong>${entry.quantity}</strong>
+        <button class="quantity-button" type="button" data-delta="1" aria-label="Увеличить количество ${productDisplayName}">+</button>
       </div>`;
-    item.querySelector('h3').textContent = product.name;
+    item.querySelector('h3').textContent = productDisplayName;
+    const variantLabel = variant.measure ? `${variant.measure} · ` : '';
+    item.querySelector('p').textContent = `${variantLabel}${formatPrice(variant.price * entry.quantity)}`;
 
     item.querySelectorAll('.quantity-button').forEach((button) => {
-      button.addEventListener('click', () => changeQuantity(productId, Number(button.dataset.delta)));
+      button.addEventListener('click', () => changeQuantity(selectionKey, Number(button.dataset.delta)));
     });
     sheetItems.append(item);
   });
 }
 
-function changeQuantity(productId, delta) {
-  const next = (state.selection.get(productId) || 0) + delta;
-  if (next <= 0) state.selection.delete(productId);
-  else state.selection.set(productId, next);
+function changeQuantity(selectionKey, delta) {
+  const entry = state.selection.get(selectionKey);
+  if (!entry) return;
+  const next = entry.quantity + delta;
+  if (next <= 0) state.selection.delete(selectionKey);
+  else state.selection.set(selectionKey, { ...entry, quantity: next });
   updateSelectionUi();
-  updateCardButton(productId);
+  updateCardButton(entry.productId, entry.variantIndex);
   if (state.selection.size === 0) closeSheet();
 }
 

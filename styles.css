@@ -176,8 +176,6 @@ button { font: inherit; }
   border: 1px solid rgba(255,255,255,.3);
   border-radius: 22px;
   box-shadow: 0 22px 52px rgba(0,0,0,.38);
-  content-visibility: auto;
-  contain-intrinsic-size: 620px;
 }
 
 .product-media { position: relative; aspect-ratio: 1.28 / 1; overflow: hidden; background: #050505; }
@@ -211,11 +209,30 @@ button { font: inherit; }
   overflow-wrap: anywhere;
 }
 
+.product-title-brand,
+.product-title-type { display: block; }
+.product-title-brand { white-space: nowrap; }
+.product-title-type { margin-top: 2px; }
+
+.product-stars {
+  display: inline-block;
+  margin-top: 10px;
+  color: #e7bf5a;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-shadow: 0 0 14px rgba(231,191,90,.34), 0 1px 0 rgba(255,255,255,.18);
+}
+
 .product-description { min-height: 1.4em; margin: 10px 0 0; color: #d0cfca; font-size: var(--product-description-size); line-height: 1.4; }
 .product-description.is-placeholder { color: #92918b; font-size: 14px; }
 .info-divider { margin: 16px 0 14px; border-top: 2px dotted rgba(220,220,220,.55); }
 .product-card.is-no-photo .product-info { padding-top: 30px; }
+.product-card.is-no-photo .product-info h2,
+.product-card.is-no-photo .product-price { font-size: 35px; }
+.product-options { display: grid; gap: 14px; }
 .product-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.product-bottom + .product-bottom { padding-top: 14px; border-top: 1px solid rgba(255,255,255,.18); }
 .product-meta { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 .product-volume { color: #dddcd6; font-size: var(--product-measure-size); }
 .product-price { color: var(--yellow); font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; font-size: var(--product-price-size); font-weight: 400; letter-spacing: .02em; line-height: .95; white-space: nowrap; }
@@ -340,6 +357,7 @@ button { font: inherit; }
 body.has-sheet { overflow: hidden; }
 
 @media (max-width: 350px) {
+  .product-info { padding-inline: 16px; }
   .product-bottom { gap: 8px; }
   .add-product { min-width: 126px; padding-inline: 10px; font-size: 14px; }
 }
