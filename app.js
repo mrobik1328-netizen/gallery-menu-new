@@ -41,7 +41,7 @@ const productsBySection = {
       {
         id: 'food-pasta-chicken-mushroom',
         name: 'Паста курица-грибы',
-        description: null,
+        description: 'Фетучини, курица, шампиньоны, пармезан, сливочный соус',
         measure: '280 г',
         price: 750,
         image: 'assets/food/pasta-chicken-mushroom.webp',
@@ -291,7 +291,26 @@ const productsBySection = {
       },
     ],
   },
-  hookahs: {},
+  hookahs: {
+    Кальяны: [
+      {
+        id: 'hookah-classic',
+        name: 'Кальян',
+        description: null,
+        measure: null,
+        price: 1700,
+        image: 'assets/hookahs/hookah.webp',
+      },
+      {
+        id: 'hookah-premium',
+        name: 'Кальян премиум',
+        description: null,
+        measure: null,
+        price: 2000,
+        image: 'assets/hookahs/hookah-premium.webp',
+      },
+    ],
+  },
 };
 
 const allProducts = Object.values(productsBySection)
@@ -481,9 +500,41 @@ function renderContent() {
       const productDisplayName = getProductDisplayName(product);
       const variantName = variant.measure ? `${productDisplayName}, ${variant.measure}` : productDisplayName;
       addButton.setAttribute('aria-label', `Добавить ${variantName} в список`);
-      addButton.addEventListener('click', () => toggleProduct(product.id, variantIndex));
+      addButton.addEventListener('click', () => addProduct(product.id, variantIndex));
 
-      option.append(meta, addButton);
+      const quantityControl = document.createElement('div');
+      quantityControl.className = 'card-quantity-control';
+      quantityControl.hidden = true;
+
+      const decreaseButton = document.createElement('button');
+      decreaseButton.className = 'card-quantity-button';
+      decreaseButton.type = 'button';
+      decreaseButton.textContent = '−';
+      decreaseButton.setAttribute('aria-label', `Уменьшить количество ${variantName}`);
+      decreaseButton.addEventListener('click', () => {
+        changeQuantity(getSelectionKey(product.id, variantIndex), -1);
+      });
+
+      const quantityValue = document.createElement('output');
+      quantityValue.className = 'card-quantity-value';
+      quantityValue.setAttribute('aria-live', 'polite');
+
+      const increaseButton = document.createElement('button');
+      increaseButton.className = 'card-quantity-button';
+      increaseButton.type = 'button';
+      increaseButton.textContent = '+';
+      increaseButton.setAttribute('aria-label', `Увеличить количество ${variantName}`);
+      increaseButton.addEventListener('click', () => {
+        changeQuantity(getSelectionKey(product.id, variantIndex), 1);
+      });
+
+      quantityControl.append(decreaseButton, quantityValue, increaseButton);
+
+      const purchaseControl = document.createElement('div');
+      purchaseControl.className = 'card-purchase-control';
+      purchaseControl.append(addButton, quantityControl);
+
+      option.append(meta, purchaseControl);
       options.append(option);
     });
 
@@ -492,10 +543,11 @@ function renderContent() {
   });
 }
 
-function toggleProduct(productId, variantIndex = 0) {
+function addProduct(productId, variantIndex = 0) {
   const selectionKey = getSelectionKey(productId, variantIndex);
-  if (state.selection.has(selectionKey)) state.selection.delete(selectionKey);
-  else state.selection.set(selectionKey, { productId, variantIndex, quantity: 1 });
+  if (!state.selection.has(selectionKey)) {
+    state.selection.set(selectionKey, { productId, variantIndex, quantity: 1 });
+  }
   updateSelectionUi();
   updateCardButton(productId, variantIndex);
 }
@@ -505,19 +557,19 @@ function updateCardButton(productId, variantIndex = 0) {
   if (!card) return;
   const option = card.querySelector(`[data-variant-index="${variantIndex}"]`);
   const button = option?.querySelector('.add-product');
-  if (!button) return;
+  const quantityControl = option?.querySelector('.card-quantity-control');
+  const quantityValue = option?.querySelector('.card-quantity-value');
+  if (!button || !quantityControl || !quantityValue) return;
   const product = productById.get(productId);
   const variant = getProductVariants(product)[variantIndex];
-  const added = state.selection.has(getSelectionKey(productId, variantIndex));
+  const entry = state.selection.get(getSelectionKey(productId, variantIndex));
+  const added = Boolean(entry);
   const productDisplayName = getProductDisplayName(product);
   const variantName = variant?.measure ? `${productDisplayName}, ${variant.measure}` : productDisplayName;
-  button.classList.toggle('is-added', added);
-  button.querySelector('.add-icon').textContent = added ? '✓' : '+';
-  button.querySelector('.add-label').textContent = added ? 'Добавлено' : 'Добавить';
-  button.setAttribute('aria-pressed', String(added));
-  const actionLabel = added ? 'Убрать' : 'Добавить';
-  const destinationLabel = added ? 'из списка' : 'в список';
-  button.setAttribute('aria-label', `${actionLabel} ${variantName || 'позицию'} ${destinationLabel}`);
+  button.hidden = added;
+  quantityControl.hidden = !added;
+  quantityValue.textContent = entry ? String(entry.quantity) : '0';
+  button.setAttribute('aria-label', `Добавить ${variantName || 'позицию'} в список`);
 }
 
 function updateSelectionUi() {
@@ -573,7 +625,7 @@ function changeQuantity(selectionKey, delta) {
   else state.selection.set(selectionKey, { ...entry, quantity: next });
   updateSelectionUi();
   updateCardButton(entry.productId, entry.variantIndex);
-  if (state.selection.size === 0) closeSheet();
+  if (state.selection.size === 0 && !sheet.hidden) closeSheet();
 }
 
 function openSheet() {

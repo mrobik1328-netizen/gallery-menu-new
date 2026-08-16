@@ -232,7 +232,7 @@ const drinksCatalog = {
     {
       id: 'drink-smoothie-berries',
       name: 'Клубника-Малина-Ежевика',
-      description: 'Клубника, малина, ежевика, вода, сахар',
+      description: 'Клубника, малина, ежевика, сахар',
       measure: '400 мл',
       price: 450,
       image: 'assets/drinks/smoothies/strawberry-raspberry-blackberry.webp',
@@ -240,7 +240,7 @@ const drinksCatalog = {
     {
       id: 'drink-smoothie-strawberry-banana',
       name: 'Клубника-банан',
-      description: 'Клубника, банан, вода',
+      description: 'Клубника, банан',
       measure: '400 мл',
       price: 450,
       image: 'assets/drinks/smoothies/strawberry-banana.webp',
@@ -248,7 +248,7 @@ const drinksCatalog = {
     {
       id: 'drink-smoothie-kiwi-apple',
       name: 'Киви-яблоко',
-      description: 'Киви, яблоко, вода, сахар',
+      description: 'Киви, яблоко, сахар',
       measure: '400 мл',
       price: 450,
       image: 'assets/drinks/smoothies/kiwi-apple.webp',
